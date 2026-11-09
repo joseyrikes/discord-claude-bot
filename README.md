@@ -1,152 +1,126 @@
-# Claude Code Discord Bot
+# Discord Claude Bot
 
-A Discord bot that runs Claude Code sessions on different projects based on Discord channel names. Each channel maps to a folder in your file system, allowing you to interact with Claude Code for different repositories through Discord.
+Run [Claude Code](https://docs.anthropic.com/en/docs/claude-code) on your local projects from Discord. Each Discord channel maps to a folder on your machine, so you can work with different repositories just by switching channels.
 
-![image](https://github.com/user-attachments/assets/d78c6dcd-eb28-48b6-be1c-74e25935b86b)
-
-## Quickstart
-
-1. Install [Bun](https://bun.sh/) and [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
-2. Create a Discord bot at [Discord Developer Portal](https://discord.com/developers/applications)
-3. Clone and setup:
-   ```bash
-   git clone <repository-url>
-   cd claude-code-discord
-   bun install
-   ```
-4. Create `.env` file:
-   ```env
-   DISCORD_TOKEN=your_discord_bot_token_here
-   ALLOWED_USER_ID=your_discord_user_id_here
-   BASE_FOLDER=/path/to/your/repos
-   ```
-5. Run: `bun start`
+```
+#my-project   →  /path/to/repos/my-project
+#another-repo →  /path/to/repos/another-repo
+```
 
 ## Features
 
-- **Channel-based project mapping**: Each Discord channel corresponds to a folder (e.g., `#my-project` → `/path/to/repos/my-project`)
-- **Persistent sessions**: Sessions are maintained per channel and automatically resume
-- **Real-time streaming**: See Claude Code's tool usage and responses as they happen
-- **Activity logging**: Shows up to 20 lines of activity including tool calls with parameters
-- **Slash commands**: Use `/clear` to reset a session
+- **Channel-to-project mapping**: the channel name selects the working folder.
+- **Persistent sessions**: each channel keeps its own session and resumes automatically.
+- **Live streaming**: watch tool calls and responses as they happen.
+- **Activity log**: shows up to 20 lines of recent activity, including tool calls and their parameters.
+- **Single-user access**: only responds to the Discord user you configure.
+- **`/clear` command**: reset a channel's session at any time.
 
-## Setup Instructions
+## Prerequisites
 
-### 1. Create a Discord Application
+- [Bun](https://bun.sh/)
+- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code), installed and authenticated
+- A Discord account with permission to add bots to a server
 
-1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
-2. Click "New Application"
-3. Give your application a name (e.g., "Claude Code Bot")
-4. Click "Create"
-
-### 2. Create a Bot User
-
-1. In your application, go to the "Bot" section in the left sidebar
-2. Click "Add Bot"
-3. Under "Token", click "Copy" to copy your bot token (keep this secure!)
-4. Under "Privileged Gateway Intents", enable:
-   - Message Content Intent
-5. Click "Save Changes"
-
-### 3. Invite the Bot to Your Server
-
-1. Go to the "OAuth2" → "URL Generator" section
-2. Under "Scopes", select:
-   - `bot`
-   - `applications.commands`
-3. Under "Bot Permissions", select:
-   - Send Messages
-   - Use Slash Commands
-   - Read Message History
-   - Embed Links
-4. Copy the generated URL and open it in your browser
-5. Select your Discord server and authorize the bot
-
-### 4. Get Your Discord User ID
-
-1. Enable Developer Mode in Discord:
-   - Go to Discord Settings → Advanced → Enable "Developer Mode"
-2. Right-click on your username in any channel
-3. Click "Copy User ID"
-4. Save this ID - you'll need it for the configuration
-
-### 5. Clone and Setup the Bot
+## Quickstart
 
 ```bash
-# Clone the repository
 git clone <repository-url>
 cd claude-code-discord
-
-# Install dependencies
 bun install
 ```
-
-### 6. Configure Environment Variables
 
 Create a `.env` file in the project root:
 
 ```env
-# Discord bot token from step 2
 DISCORD_TOKEN=your_discord_bot_token_here
-
-# Your Discord user ID from step 4
 ALLOWED_USER_ID=your_discord_user_id_here
-
-# Base folder containing your repositories
-# Each Discord channel will map to a subfolder here
-# Example: if BASE_FOLDER=/Users/you/repos and channel is #my-project
-# The bot will operate in /Users/you/repos/my-project
 BASE_FOLDER=/path/to/your/repos
 ```
 
-### 7. Prepare Your Repository Structure
-
-Organize your repositories under the base folder with names matching your Discord channels:
-
-```
-/path/to/your/repos/
-├── my-project/          # Maps to #my-project channel
-├── another-repo/        # Maps to #another-repo channel
-├── test-app/           # Maps to #test-app channel
-└── experimental/       # Maps to #experimental channel
-```
-
-**Important**: Channel names in Discord should match folder names exactly (Discord will convert spaces to hyphens).
-
-### 8. Create Discord Channels
-
-In your Discord server, create channels for each repository:
-- `#my-project`
-- `#another-repo` 
-- `#test-app`
-- `#experimental`
-
-### 9. Run the Bot
+Start the bot:
 
 ```bash
-# Start the bot
-bun run src/index.ts
-
-# Or use the npm script
 bun start
 ```
 
-**Important**: Do not use hot reload (`bun --hot`) as it can cause issues with process management and spawn multiple Claude processes.
-
 You should see:
+
 ```
 Bot is ready! Logged in as Claude Code Bot#1234
 Successfully registered application commands.
 ```
 
+New to Discord bots? Follow the full setup below.
+
+## Configuration
+
+| Variable          | Required | Description                                                                 |
+| ----------------- | -------- | --------------------------------------------------------------------------- |
+| `DISCORD_TOKEN`   | Yes      | Bot token from the Discord Developer Portal. Keep it secret.                |
+| `ALLOWED_USER_ID` | Yes      | Your Discord user ID. The bot ignores everyone else.                        |
+| `BASE_FOLDER`     | Yes      | Parent folder of your repos. Each channel maps to a subfolder of this path. |
+
+For example, with `BASE_FOLDER=/Users/you/repos`, messages in `#my-project` run Claude Code in `/Users/you/repos/my-project`.
+
+## Full Setup Guide
+
+### 1. Create a Discord application and bot
+
+1. Open the [Discord Developer Portal](https://discord.com/developers/applications) and click **New Application**.
+2. Name it (e.g. "Claude Code Bot") and click **Create**.
+3. Go to the **Bot** section in the sidebar. (Newer applications already include a bot user; if you see an **Add Bot** button, click it.)
+4. Click **Reset Token** / **Copy** to get your bot token and store it somewhere safe.
+5. Under **Privileged Gateway Intents**, enable **Message Content Intent**, then save.
+
+### 2. Invite the bot to your server
+
+1. Go to **OAuth2 → URL Generator**.
+2. Select the scopes `bot` and `applications.commands`.
+3. Select the bot permissions: Send Messages, Use Slash Commands, Read Message History, Embed Links.
+4. Open the generated URL, choose your server, and authorize.
+
+### 3. Get your Discord user ID
+
+1. In Discord, go to **Settings → Advanced** and enable **Developer Mode**.
+2. Right-click your username in any channel and choose **Copy User ID**.
+
+### 4. Prepare your repositories
+
+Put your projects under `BASE_FOLDER`, with folder names matching your channel names:
+
+```
+/path/to/your/repos/
+├── my-project/        # → #my-project
+├── another-repo/      # → #another-repo
+├── test-app/          # → #test-app
+└── experimental/      # → #experimental
+```
+
+> **Important**: channel names must match folder names exactly. Discord converts spaces to hyphens and lowercases channel names, so name your folders accordingly.
+
+### 5. Create the channels
+
+In your Discord server, create one channel per repository: `#my-project`, `#another-repo`, `#test-app`, `#experimental`.
+
+### 6. Run the bot
+
+```bash
+bun start
+# or
+bun run src/index.ts
+```
+
+> **Warning**: do not use hot reload (`bun --hot`). It can break process management and spawn multiple Claude processes.
+
 ## Usage
 
-Type any message in a channel that corresponds to a repository folder. The bot will run Claude Code with your message as the prompt and stream the results.
+Type any message in a channel that matches a repository folder. The bot runs Claude Code with your message as the prompt and streams the results back.
 
-### Commands
-
-- **Any message**: Runs Claude Code with your message as the prompt
-- **/clear**: Resets the current channel's session (starts fresh next time)
+| Input         | What it does                                                    |
+| ------------- | --------------------------------------------------------------- |
+| Any message   | Runs Claude Code with the message as the prompt                 |
+| `/clear`      | Resets the current channel's session; the next message starts fresh |
 
 ### Example
 
@@ -160,13 +134,32 @@ Bot: 🔧 LS (path: .)
 
 ## How It Works
 
-- Each Discord channel maps to a folder: `#my-project` → `/path/to/repos/my-project`
-- Sessions persist per channel and automatically resume
-- Shows real-time tool usage and responses
-- Only responds to the configured `ALLOWED_USER_ID`
+1. You send a message in a channel such as `#my-project`.
+2. The bot checks that the sender matches `ALLOWED_USER_ID`.
+3. It resolves the channel name to `BASE_FOLDER/my-project` and starts (or resumes) that channel's Claude Code session there.
+4. Tool calls and responses are streamed back into the channel as they happen.
 
-For detailed setup instructions, troubleshooting, and development information, see [CONTRIBUTING.md](CONTRIBUTING.md).
+## Security
+
+This bot gives Claude Code access to files and commands on the machine it runs on, driven from a chat message. Treat it accordingly:
+
+- Set `ALLOWED_USER_ID` to your own ID only. Never leave it blank or share it with others.
+- Keep `.env` out of version control and never share your bot token. If it leaks, reset it in the Developer Portal.
+- Point `BASE_FOLDER` at a directory containing only the projects you want Claude to touch.
+- Run the bot in a private server where you control who can post.
+
+## Troubleshooting
+
+| Problem                          | Things to check                                                                                          |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Bot is online but doesn't reply  | Is **Message Content Intent** enabled? Does `ALLOWED_USER_ID` match your account? Does the bot have access to the channel? |
+| Slash commands don't appear      | Was the bot invited with the `applications.commands` scope? Commands can take a moment to register.       |
+| "Folder not found" or wrong repo | Does the channel name exactly match a folder in `BASE_FOLDER`? Remember Discord uses lowercase and hyphens. |
+| Multiple Claude processes        | Make sure you aren't running with `bun --hot` or running two bot instances.                               |
+| Claude Code fails to start       | Confirm the `claude` CLI is installed, on your `PATH`, and logged in.                                     |
+
+For more detail on development and debugging, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-This project is licensed under the MIT License.
+Released under the [MIT License](LICENSE).
